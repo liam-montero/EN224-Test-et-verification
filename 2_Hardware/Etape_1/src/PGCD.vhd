@@ -24,7 +24,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
@@ -51,9 +51,17 @@ signal etat_present, etat_suivant : etat;
 begin
 
 --mémorisation
+process (CLK, RESET)
+begin
+	if RESET = '0' 
+		then etat_present <= 0;
+	else if CLK'event and CLK = '1' then
+		etat_present <= etat_suivant;
+	end if;
+end process;
 
 
---evolution
+--évolution
 process (etat_present, idata_en)
 begin
 	case etat_present is
@@ -63,13 +71,24 @@ begin
 		
 		when et1 => etat_suivant <= et2;
 
-		when et2 => etat_suivant <= et3;
+		when et2 => etat_suivant <= et0;
 
 		when others => etat_suivant <= et0;
 	end case;
 end process;
 
+--Mise à jour des sorties
+while (idata_a /= idata_b) loop
+	if (idata_a > idata_b) then
+		idata_a <= idata_a - idata_b;
+	else
+		idata_b <= idata_b - idata_a;
+	end if;
+	odata <= idata_a;
+end loop;
 
 
+odata_en <= '1' when etat_present = et2 else
+		    '0';
 
 end Ar;
